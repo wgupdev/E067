@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>From Area to Accumulation</title>
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <style>
+    :root {
+      --bg: #f6f8fb;
+      --card: #ffffff;
+      --ink: #1f2937;
+      --muted: #6b7280;
+      --accent: #2563eb;
+      --accent-soft: #dbeafe;
+      --good: #166534;
+      --good-bg: #dcfce7;
+      --warn: #92400e;
+      --warn-bg: #fef3c7;
+      --border: #d1d5db;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.5;
+    }
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    .hero {
+      background: linear-gradient(135deg, #eff6ff, #ffffff);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+    }
+    h1, h2, h3 { margin-top: 0; }
+    .subtitle { color: var(--muted); }
+    .grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 20px;
+    }
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+      margin-bottom: 20px;
+    }
+    label { font-weight: bold; display: block; margin: 12px 0 6px; }
+    select, input[type="number"], button {
+      font: inherit;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      width: 100%;
+    }
+    button {
+      width: auto;
+      background: var(--accent);
+      color: white;
+      border: none;
+      cursor: pointer;
+      margin-top: 12px;
+      padding: 10px 16px;
+    }
+    button:hover { opacity: 0.95; }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .feedback {
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      display: none;
+    }
+    .feedback.good {
+      display: block;
+      background: var(--good-bg);
+      color: var(--good);
+    }
+    .feedback.warn {
+      display: block;
+      background: var(--warn-bg);
+      color: var(--warn);
+    }
+    canvas {
+      width: 100%;
+      max-width: 100%;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      margin-top: 12px;
+    }
+    .pill {
+      display: inline-block;
+      background: var(--accent-soft);
+      color: var(--accent);
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 0.9rem;
+      margin-right: 8px;
+      margin-bottom: 8px;
+    }
+    .small { color: var(--muted); font-size: 0.95rem; }
+    ol li { margin-bottom: 8px; }
+    .formula {
+      background: #f8fafc;
+      border-left: 4px solid var(--accent);
+      padding: 10px 14px;
+      border-radius: 10px;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <h1>From Area to Accumulation</h1>
+      <p class="subtitle">An interactive activity for understanding definite and indefinite integrals using geometry and the Fundamental Theorem of Calculus through a real-world water tank scenario.</p>
+      <span class="pill">Definite Integrals</span>
+      <span class="pill">Indefinite Integrals</span>
+      <span class="pill">Geometry</span>
+      <span class="pill">FTC</span>
+    </section>
+
+    <div class="grid">
+      <div>
+        <section class="card">
+          <h2>1) Real-World Scenario: Filling a Water Tank</h2>
+          <p>A community garden is filling a water tank for irrigation. The <strong>rate of water flow</strong> into the tank changes over time, and your job is to analyze how much water enters the tank and how the total amount of water accumulates.</p>
+          <div class="formula">
+            Let \(f(x)\) represent the water flow rate in gallons per minute after \(x\) minutes.
+          </div>
+          <p>This means:</p>
+          <ul>
+            <li>A <strong>definite integral</strong> gives the total change in water volume over an interval of time.</li>
+            <li>An <strong>indefinite integral</strong> gives a family of accumulation functions for water volume.</li>
+            <li>The <strong>Fundamental Theorem of Calculus</strong> connects the rate function to the accumulation function.</li>
+          </ul>
+          <label for="fnSelect">Choose a flow-rate model</label>
+          <select id="fnSelect">
+            <option value="x">\(f(x)=x\) on \([0,4]\)</option>
+            <option value="const">\(f(x)=2\) on \([0,4]\)</option>
+            <option value="neg">\(f(x)=x-2\) on \([0,4]\)</option>
+            <option value="parab">\(f(x)=4-x^2\) on \([0,2]\)</option>
+          </select>
+
+          <div class="formula" id="taskPrompt">
+            Interpret the graph as water flow rate versus time. Then compute the total water added over the interval and describe what the geometry means.
+          </div>
+
+          <canvas id="graphCanvas" width="620" height="360"></canvas>
+          <p class="small">The blue region shows accumulated change in water volume over the selected time interval.</p>
+        </section>
+
+        <section class="card">
+          <h2>2) Definite Integral Check</h2>
+          <p>Use geometry or antiderivatives to evaluate the integral.</p>
+          <div id="defIntegralLatex" class="formula">\(\int_0^4 x\,dx = ?\)</div>
+          <label for="defAnswer">Your answer</label>
+          <input id="defAnswer" type="number" step="0.01" placeholder="Enter a number" />
+          <button onclick="checkDefinite()">Check Answer</button>
+          <div id="defFeedback" class="feedback"></div>
+        </section>
+
+        <section class="card">
+          <h2>3) Indefinite Integral Check</h2>
+          <p>Find an antiderivative of the selected function.</p>
+          <div id="indefPrompt" class="formula">Find \(\int x\,dx\).</div>
+          <label for="coeffA">Coefficient of the main power term</label>
+          <input id="coeffA" type="number" step="0.01" placeholder="Example: 0.5" />
+          <label for="powerN">Power of \(x\) in that term</label>
+          <input id="powerN" type="number" step="1" placeholder="Example: 2" />
+          <p class="small">Use the form \(ax^n + C\) when possible for the chosen function.</p>
+          <button onclick="checkIndefinite()">Check Antiderivative</button>
+          <div id="indefFeedback" class="feedback"></div>
+        </section>
+      </div>
+
+      <div>
+        <section class="card">
+          <h2>4) Build the Accumulation Function</h2>
+          <p>For the selected function, define</p>
+          <div class="formula">\(F(x)=\int_a^x f(t)\,dt\)</div>
+          <p>Estimate values of \(F(x)\) at different points. Then explain how the slope of \(F\) relates to \(f\).</p>
+
+          <label for="xValue">Choose an \(x\)-value</label>
+          <input id="xValue" type="number" step="0.1" value="2" />
+          <button onclick="showAccumulation()">Show \(F(x)\)</button>
+          <div id="accumResult" class="feedback"></div>
+        </section>
+
+        <section class="card">
+          <h2>5) Reflection Prompts</h2>
+          <ol>
+            <li>How is a <strong>definite integral</strong> different from an <strong>indefinite integral</strong>?</li>
+            <li>When does the definite integral represent a positive value, a negative value, or zero?</li>
+            <li>How does geometry help you evaluate an integral without using formal antiderivatives?</li>
+            <li>What does the Fundamental Theorem of Calculus tell you about \(F'(x)\) if \(F(x)=\int_a^x f(t)\,dt\)?</li>
+          </ol>
+        </section>
+
+        <section class="card">
+          <h2>Teacher Notes</h2>
+          <p><strong>Success criteria:</strong></p>
+          <ul>
+            <li>Students interpret \(\int_a^b f(x)\,dx\) as signed area.</li>
+            <li>Students identify an indefinite integral as a family of antiderivatives.</li>
+            <li>Students connect accumulation and slope through FTC.</li>
+          </ul>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const graphCanvas = document.getElementById('graphCanvas');
+    const ctx = graphCanvas.getContext('2d');
+
+    const defs = {
+      x: {
+        label: '\\(f(x)=x\\)',
+        a: 0, b: 4,
+        f: x => x,
+        F: x => 0.5 * x * x,
+        definite: 8,
+        anti: { a: 0.5, n: 2 },
+        latexDef: '\\(\\int_0^4 x\\,dx = ?\\)',
+        latexIndef: 'Find \\(\\int x\\,dx\\).'
+      },
+      const: {
+        label: '\\(f(x)=2\\)',
+        a: 0, b: 4,
+        f: x => 2,
+        F: x => 2 * x,
+        definite: 8,
+        anti: { a: 2, n: 1 },
+        latexDef: '\\(\\int_0^4 2\\,dx = ?\\)',
+        latexIndef: 'Find \\(\\int 2\\,dx\\).'
+      },
+      neg: {
+        label: '\\(f(x)=x-2\\)',
+        a: 0, b: 4,
+        f: x => x - 2,
+        F: x => 0.5*x*x - 2*x,
+        definite: 0,
+        anti: { a: 0.5, n: 2, extraLinear: -2 },
+        latexDef: '\\(\\int_0^4 (x-2)\\,dx = ?\\)',
+        latexIndef: 'One antiderivative of \\(x-2\\) is \\(\\frac{1}{2}x^2-2x+C\\). Explain why.'
+      },
+      parab: {
+        label: '\\(f(x)=4-x^2\\)',
+        a: 0, b: 2,
+        f: x => 4 - x*x,
+        F: x => 4*x - (x*x*x)/3,
+        definite: 16/3,
+        anti: null,
+        latexDef: '\\(\\int_0^2 (4-x^2)\\,dx = ?\\)',
+        latexIndef: 'An antiderivative is \\(4x-\\frac{1}{3}x^3+C\\).'
+      }
+    };
+
+    function currentDef() {
+      return defs[document.getElementById('fnSelect').value];
+    }
+
+    function updateView() {
+      const d = currentDef();
+      document.getElementById('taskPrompt').innerHTML = `Selected function: ${d.label} on \\([${d.a},${d.b}]\\). Find the definite integral and describe the geometry.`;
+      document.getElementById('defIntegralLatex').innerHTML = d.latexDef;
+      document.getElementById('indefPrompt').innerHTML = d.latexIndef;
+      document.getElementById('defFeedback').className = 'feedback';
+      document.getElementById('defFeedback').textContent = '';
+      document.getElementById('indefFeedback').className = 'feedback';
+      document.getElementById('indefFeedback').textContent = '';
+      document.getElementById('accumResult').className = 'feedback';
+      document.getElementById('accumResult').textContent = '';
+      drawGraph();
+      if (window.MathJax) MathJax.typesetPromise();
+    }
+
+    function drawAxes(xMin, xMax, yMin, yMax, mapX, mapY) {
+      ctx.strokeStyle = '#9ca3af';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(mapX(xMin), mapY(0));
+      ctx.lineTo(mapX(xMax), mapY(0));
+      ctx.moveTo(mapX(0), mapY(yMin));
+      ctx.lineTo(mapX(0), mapY(yMax));
+      ctx.stroke();
+    }
+
+    function drawGraph() {
+      const d = currentDef();
+      const xMin = d.a - 0.5;
+      const xMax = d.b + 0.5;
+      let yVals = [];
+      for (let x = xMin; x <= xMax; x += 0.05) yVals.push(d.f(x));
+      const yMin = Math.min(-1, ...yVals) - 0.5;
+      const yMax = Math.max(4, ...yVals) + 0.5;
+
+      const pad = 36;
+      const w = graphCanvas.width;
+      const h = graphCanvas.height;
+      const mapX = x => pad + (x - xMin) / (xMax - xMin) * (w - 2*pad);
+      const mapY = y => h - pad - (y - yMin) / (yMax - yMin) * (h - 2*pad);
+
+      ctx.clearRect(0, 0, w, h);
+      drawAxes(xMin, xMax, yMin, yMax, mapX, mapY);
+
+      ctx.fillStyle = 'rgba(37, 99, 235, 0.18)';
+      ctx.beginPath();
+      ctx.moveTo(mapX(d.a), mapY(0));
+      for (let x = d.a; x <= d.b; x += 0.02) ctx.lineTo(mapX(x), mapY(d.f(x)));
+      ctx.lineTo(mapX(d.b), mapY(0));
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.strokeStyle = '#2563eb';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      let first = true;
+      for (let x = xMin; x <= xMax; x += 0.02) {
+        const px = mapX(x), py = mapY(d.f(x));
+        if (first) { ctx.moveTo(px, py); first = false; }
+        else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+
+      ctx.fillStyle = '#111827';
+      ctx.font = '12px Arial';
+      for (let i = Math.ceil(xMin); i <= Math.floor(xMax); i++) {
+        ctx.fillText(String(i), mapX(i)-4, mapY(0)+16);
+      }
+      for (let j = Math.ceil(yMin); j <= Math.floor(yMax); j++) {
+        if (j !== 0) ctx.fillText(String(j), mapX(0)+6, mapY(j)+4);
+      }
+    }
+
+    function closeEnough(a, b) {
+      return Math.abs(a - b) < 0.15;
+    }
+
+    function checkDefinite() {
+      const d = currentDef();
+      const val = parseFloat(document.getElementById('defAnswer').value);
+      const box = document.getElementById('defFeedback');
+      if (Number.isNaN(val)) {
+        box.className = 'feedback warn';
+        box.textContent = 'Enter a numerical answer first.';
+        return;
+      }
+      if (closeEnough(val, d.definite)) {
+        box.className = 'feedback good';
+        box.innerHTML = `Correct. The definite integral is approximately <strong>${d.definite.toFixed(2)}</strong>. This represents the signed area on the interval.`;
+      } else {
+        box.className = 'feedback warn';
+        box.innerHTML = `Not quite. Think about the geometry or use an antiderivative and evaluate \\(F(b)-F(a)\\).`;
+        if (window.MathJax) MathJax.typesetPromise();
+      }
+    }
+
+    function checkIndefinite() {
+      const d = currentDef();
+      const box = document.getElementById('indefFeedback');
+      if (!d.anti) {
+        box.className = 'feedback good';
+        box.innerHTML = 'For this function, discuss the antiderivative shown in the prompt and explain how differentiating it returns the original function.';
+        return;
+      }
+      const a = parseFloat(document.getElementById('coeffA').value);
+      const n = parseFloat(document.getElementById('powerN').value);
+      if (Number.isNaN(a) || Number.isNaN(n)) {
+        box.className = 'feedback warn';
+        box.textContent = 'Enter both a coefficient and a power.';
+        return;
+      }
+      if (closeEnough(a, d.anti.a) && closeEnough(n, d.anti.n)) {
+        if (d.extraLinear !== undefined) {
+          box.className = 'feedback good';
+          box.innerHTML = 'Good start. You identified the main power term correctly. Do not forget the additional linear term and the constant of integration.';
+        } else {
+          box.className = 'feedback good';
+          box.innerHTML = 'Correct. That matches a valid antiderivative form. Remember to add \\( + C \\).';
+          if (window.MathJax) MathJax.typesetPromise();
+        }
+      } else {
+        box.className = 'feedback warn';
+        box.innerHTML = 'Try the reverse power rule carefully: increase the exponent by 1, then divide by the new exponent.';
+      }
+    }
+
+    function showAccumulation() {
+      const d = currentDef();
+      const x = parseFloat(document.getElementById('xValue').value);
+      const box = document.getElementById('accumResult');
+      if (Number.isNaN(x)) {
+        box.className = 'feedback warn';
+        box.textContent = 'Enter an x-value.';
+        return;
+      }
+      const val = d.F(x) - d.F(d.a);
+      box.className = 'feedback good';
+      box.innerHTML = `For this function, \\(F(${x.toFixed(2)})\\approx ${val.toFixed(2)}\\). By the Fundamental Theorem of Calculus, the slope of \\(F\\) at \\(x\\) is \\(f(x)\\).`;
+      if (window.MathJax) MathJax.typesetPromise();
+    }
+
+    document.getElementById('fnSelect').addEventListener('change', updateView);
+    updateView();
+  </script>
+</body>
+</html>
